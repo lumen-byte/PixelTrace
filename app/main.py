@@ -1,4 +1,8 @@
 import os
+# Force disable CNN and PyTorch/timm imports globally for the web app to ensure sub-100ms local / sub-300ms Render warm latency
+os.environ["PT_NO_CNN"] = "1"
+os.environ["HF_HUB_OFFLINE"] = "1"
+
 import time
 from pathlib import Path
 

@@ -49,11 +49,17 @@ class ImagePreprocessor:
     ) -> np.ndarray:
         """
         Resize image while maintaining aspect ratio.
+        For large images, performs a fast 2-step downsampling to reduce latency.
         """
         h, w = image.shape[:2]
 
-        aspect_ratio = h / w
+        # Fast 2-step downsample if image is very large (e.g., direct camera uploads)
+        if w > 512:
+            scale = 512.0 / w
+            image = cv2.resize(image, (512, int(h * scale)), interpolation=cv2.INTER_NEAREST)
+            h, w = image.shape[:2]
 
+        aspect_ratio = h / w
         height = int(width * aspect_ratio)
 
         return cv2.resize(
@@ -101,8 +107,11 @@ class ImagePreprocessor:
         enhanced = self.apply_clahe(gray)
         normalized = self.normalize(enhanced)
 
+        import os
+        no_cnn = os.environ.get("PT_NO_CNN") == "1"
+
         return {
-            "original": original,
+            "original": None if no_cnn else original,
             "resized": resized,
             "gray": gray,
             "enhanced": enhanced,

@@ -61,14 +61,14 @@ class ColorFeatureExtractor:
         corr_gb = _pearson(g_flat, b_flat)
         corr_br = _pearson(b_flat, r_flat)
 
-        # Laplacian for each channel
-        l_r = cv2.Laplacian(r, cv2.CV_64F)
-        l_g = cv2.Laplacian(g, cv2.CV_64F)
-        l_b = cv2.Laplacian(b, cv2.CV_64F)
+        # Laplacian for each channel (CV_16S is much faster than CV_64F)
+        l_r = cv2.Laplacian(r, cv2.CV_16S)
+        l_g = cv2.Laplacian(g, cv2.CV_16S)
+        l_b = cv2.Laplacian(b, cv2.CV_16S)
 
-        diff_rg = np.mean(np.abs(l_r - l_g))
-        diff_gb = np.mean(np.abs(l_g - l_b))
-        diff_br = np.mean(np.abs(l_b - l_r))
+        diff_rg = np.mean(np.abs(l_r.astype(np.float32) - l_g.astype(np.float32)))
+        diff_gb = np.mean(np.abs(l_g.astype(np.float32) - l_b.astype(np.float32)))
+        diff_br = np.mean(np.abs(l_b.astype(np.float32) - l_r.astype(np.float32)))
 
         # Higher-order moments — pure NumPy (no scipy)
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
