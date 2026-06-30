@@ -11,21 +11,13 @@ requires-python = ">=3.12"
 dependencies = [
     "fastapi",
     "uvicorn[standard]",
-    "opencv-python",
+    "opencv-python-headless",
     "numpy",
-    "pandas",
     "scikit-image",
     "scikit-learn",
-    "xgboost",
     "joblib",
-    "matplotlib",
-    "plotly",
-    "jinja2",
     "python-multipart",
     "pillow",
-    "tqdm",
-    "rich",
-    "pytest",
     "python-dotenv"
 ]
 
