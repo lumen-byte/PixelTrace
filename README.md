@@ -1,54 +1,47 @@
 # PixelTrace
 
 ## Overview
-Screens lie. A photo of a photo can look just as crisp, just as convincing, as the real thing — until you know what to look for. PixelTrace was built to know what to look for.
+Screens lie. A photograph of a display can look just as crisp and convincing as the real thing—until you know exactly what to look for. PixelTrace is built to know what to look for.
 
-It's a system-level solution for catching screen recaptures and image fraud, built around a **hybrid feature extraction pipeline** that pairs lightweight handcrafted computer-vision descriptors with a deep convolutional neural network (CNN). The result is detection accuracy that doesn't demand a GPU farm to run — it's comfortable on CPU-only environments, which matters a lot more in production than in a research notebook.
+It is a system-level solution for detecting screen recaptures and image fraud. Rather than relying solely on brute-force deep learning, PixelTrace is built around a **Hybrid Feature Extraction Pipeline**. It intelligently pairs lightweight, handcrafted computer-vision descriptors with a deep convolutional neural network (CNN) embedding. The result is detection accuracy that doesn't demand a GPU farm to run—it is fast, predictable, and comfortable in CPU-only environments, which matters significantly more in real-world production systems than in a research notebook.
 
-## Features
-- **Hybrid Mode** — Switch seamlessly between a fast handcrafted CV stack and a heavier CNN-based extractor, toggled at runtime with the `PT_NO_CNN` environment variable. Speed when you need it, depth when you don't.
+## The Architecture & Hybrid Mode
+At the core of PixelTrace is the **FeatureFusionEngine**, an orchestrator that merges handcrafted visual descriptors (extracting moiré patterns, chromatic aberration, texture inconsistencies, and noise profiles) with deep CNN embeddings before routing them to the final classifier. This design provides resilience against a wide spectrum of manipulation techniques.
+
+**Hybrid Mode** is the cornerstone of this system's flexibility. You can switch seamlessly between the highly optimized handcrafted CV stack and the heavier CNN-based extractor, toggled dynamically at runtime with the `PT_NO_CNN` environment variable. This allows you to choose speed when latency is critical, and depth when accuracy is paramount.
+
 - **Stateless API** — A FastAPI endpoint (`api/index.py`) ready to deploy serverless on Vercel or containerized on Render, with no hidden state to manage between requests.
-- **Optimized Runtime** — Every runtime dependency earns its place. No pandas, no XGBoost, no heavy training-time libraries — just what's needed to stay under Vercel's 500 MB bundle limit.
-- **Docker Ready** — A production-grade `Dockerfile` built on `python:3.12-slim` for deployments that behave the same way everywhere.
-- **Cross-Platform** — Runs on macOS, Linux, and Windows, with GPU acceleration available for the CNN path when you want it, optional when you don't.
+- **Optimized Runtime** — Every runtime dependency earns its place. The pipeline is stripped of heavy training-time libraries, using highly optimized OpenCV and NumPy routines to stay under strict serverless bundle limits and deliver responses in under 70ms on warm local runs.
+- **Docker Ready** — A production-grade `Dockerfile` built on `python:3.12-slim` ensures that deployments behave the same way everywhere.
+- **Cross-Platform** — Runs reliably on macOS, Linux, and Windows, with optional GPU acceleration for the CNN path.
 
-## Architecture
-```
-PixelTrace
-├─ cv/
-│   ├─ feature_fusion.py   # Orchestrates 11 handcrafted extractors
-│   └─ *.py                # Individual CV modules (e.g., chromatic, noise)
-├─ ml/
-│   ├─ models/
-│   │   └─ best_model.pkl  # Pre-trained SVM classifier
-│   └─ cnn/                # Optional PyTorch/Timm models
-├─ api/
-│   └─ index.py            # FastAPI entry point for Vercel/Render
-├─ predict.py               # CLI for offline inference
-├─ pyproject.toml           # Minimal runtime dependencies
-└─ Dockerfile               # Production container image
-```
-At the heart of it all sits the **FeatureFusionEngine**, which merges handcrafted descriptors with CNN embeddings before handing them off to the final classifier — giving the system resilience against a wide range of manipulation techniques, not just the obvious ones.
+## Visual Evidence
 
-## Screenshots
-
-### ✅ Authentic Photo Detection
-The system correctly recognizes a genuine, camera-captured photograph as **Authentic**, assigning a very low fraud probability while surfacing the forensic indicators that informed the decision.
+### Authentic Photo Detection
+The system correctly recognizes a genuine, camera-captured photograph as Authentic, assigning a very low fraud probability while surfacing the forensic indicators that informed the decision.
 
 ![Authentic Photo Detection](https://github.com/lumen-byte/PixelTrace/blob/main/ScreenShots/Screenshot%202026-07-01%20at%202.26.46%E2%80%AFAM.png)
 
----
+<br/>
 
-### 🚨 Screen Recapture (Fraud) Detection
-The system flags a photograph of a screen or display as a **Screen Recapture (Fraud)** with high confidence, drawing on moiré patterns, chromatic edge artifacts, texture inconsistencies, and other display-related forensic signals.
+### Screen Recapture (Fraud) Detection
+The system flags a photograph of a screen or display as a Screen Recapture (Fraud) with high confidence, drawing on moiré patterns, chromatic edge artifacts, texture inconsistencies, and other display-related forensic signals.
 
 ![Screen Recapture Detection](https://github.com/lumen-byte/PixelTrace/blob/main/ScreenShots/Screenshot%202026-07-01%20at%202.27.18%E2%80%AFAM.png)
+
+## Model Performance
+Through rigorous optimization of both the feature extractors and the classification model, PixelTrace achieves an excellent balance between accuracy and inference latency:
+
+- **Accuracy**: Achieves an 80-85% test accuracy in real-world scenarios, leveraging robust feature engineering like subpixel grid scoring, structural gradients, and radial frequency binning.
+- **Inference Latency**: The handcrafted CV pipeline has been heavily optimized (using vectorization, hardware-accelerated transforms, and integer-shift local binary patterns) to execute in approximately **60-70ms** on local machines, scaling efficiently to constrained cloud environments.
+- **Classifier**: The final classification is handled by a rigorously tuned logistic regression and support vector machine architecture, ensuring predictable decision boundaries without the overhead of massive tree ensembles in production.
 
 ## Live Demo
 - **Vercel:** [pixel-trace-8966vpegb-lumenbyte1.vercel.app](https://pixel-trace-8966vpegb-lumenbyte1.vercel.app/)
 - **Render:** [pixeltrace.onrender.com](https://pixeltrace.onrender.com/)
 
 ## Installation
+
 ```bash
 # Clone the repository
 git clone https://github.com/lumen-byte/PixelTrace.git
@@ -58,41 +51,44 @@ cd PixelTrace
 python3 -m venv .venv
 source .venv/bin/activate
 
-# Install runtime dependencies
+# Install runtime dependencies using uv for deterministic resolution
 uv pip install -r <(uv pip compile pyproject.toml --no-dev)
 ```
-> `uv` is used here deliberately — it gives fast, deterministic dependency resolution, so the environment you build today behaves the same way next month.
 
 ## Usage
-### CLI
+
+**Command Line Interface (Offline Inference)**
 ```bash
-# Run inference on a local image
 .venv/bin/python predict.py path/to/image.jpg
 ```
-### API
+
+**Development Server (API)**
 ```bash
-# Start the development server
 .venv/bin/python -m uvicorn app.main:app --reload
 ```
-The API accepts a `multipart/form-data` POST request at `/predict` and returns a JSON payload with the authenticity score.
+The API accepts a `multipart/form-data` POST request at `/predict` and returns a JSON payload containing the authenticity score and key forensic features.
 
 ## Deployment
 
 ### Vercel (Serverless)
-1. Make sure `vercel.json` routes to `api/index.py`.
-2. Set `PT_NO_CNN=1` if you need to stay within the function size limit.
-3. Deploy with the Vercel CLI:
+1. Ensure `vercel.json` routes to `api/index.py`.
+2. Set `PT_NO_CNN=1` in your environment variables to bypass the deep learning model and stay within the 500MB function size limit.
+3. Deploy via the Vercel CLI:
    ```bash
    vercel --prod
    ```
 
 ### Render (Docker)
-1. Push the repository to Render and configure a **Docker** service.
-2. Use the provided `Dockerfile` — Render builds the image automatically.
-3. Expose port `8000` (FastAPI default) in the Render settings.
-
-## Contributing
-Contributions are genuinely welcome. Fork the repository, create a feature branch, and open a pull request. Please follow the existing code style and run the test suite before submitting — it keeps the project trustworthy for everyone who depends on it.
+1. Push the repository to Render and configure a Docker service.
+2. The provided `Dockerfile` will automatically build the production image.
+3. Expose port `8000` (FastAPI default) in the Render service settings.
 
 ## License
 This project is licensed under the MIT License.
+
+## Developers
+
+**Abhimanyu Pratap Singh**  
+E23CSEU0193  
+B.tech Computer Science and Engineering  
+Bennett University  
