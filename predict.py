@@ -84,6 +84,28 @@ def _load_pipeline():
     _pipeline_loaded = True
 
 
+def _score(data: dict, return_features: bool = False):
+    """Shared scoring logic for both file-path and in-memory predict."""
+    fusion = _feature_pipeline["fusion"]
+
+    features = fusion.extract(data)
+
+    expected_cols = list(_scaler.feature_names_in_)
+    row_values = [features.get(col, 0.0) for col in expected_cols]
+    arr = np.array([row_values], dtype=np.float32)
+    arr_scaled = _scaler.transform(arr)
+
+    if hasattr(_model, "predict_proba"):
+        score = float(_model.predict_proba(arr_scaled)[0][1])
+    else:
+        score = float(_model.predict(arr_scaled)[0])
+
+    score = round(score, 4)
+    if return_features:
+        return score, features
+    return score
+
+
 def predict(image_path: str, return_features: bool = False):
     """
     Detect whether an image is a real photo (0) or a photo of a screen (1).
@@ -96,32 +118,20 @@ def predict(image_path: str, return_features: bool = False):
         Float in [0, 1]. Close to 1 → likely screen recapture.
     """
     _load_pipeline()
-
     preprocessor = _feature_pipeline["preprocessor"]
-    fusion        = _feature_pipeline["fusion"]
+    data = preprocessor.preprocess(image_path)
+    return _score(data, return_features)
 
-    # 1. Preprocess
-    data     = preprocessor.preprocess(image_path)
 
-    # 2. Extract features
-    features = fusion.extract(data)
-
-    # 3. Align with scaler expected features
-    expected_cols = list(_scaler.feature_names_in_)
-    row_values = [features.get(col, 0.0) for col in expected_cols]
-    arr = np.array([row_values], dtype=np.float32)
-    arr_scaled = _scaler.transform(arr)
-
-    # 4. Score
-    if hasattr(_model, "predict_proba"):
-        score = float(_model.predict_proba(arr_scaled)[0][1])
-    else:
-        score = float(_model.predict(arr_scaled)[0])
-
-    score = round(score, 4)
-    if return_features:
-        return score, features
-    return score
+def predict_bytes(image_bytes: bytes, return_features: bool = False):
+    """
+    Same as predict() but accepts raw image bytes (in-memory).
+    Avoids temp file I/O — faster on cloud deployments.
+    """
+    _load_pipeline()
+    preprocessor = _feature_pipeline["preprocessor"]
+    data = preprocessor.preprocess_bytes(image_bytes)
+    return _score(data, return_features)
 
 
 # ── CLI ───────────────────────────────────────────────────────────────────────

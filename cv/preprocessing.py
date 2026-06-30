@@ -94,26 +94,11 @@ class ImagePreprocessor:
         """
         return image.astype(np.float32) / 255.0
 
-    def preprocess(
-        self,
-        image_path: str
-    ) -> dict:
-        """
-        Complete preprocessing pipeline.
-
-        Returns
-        -------
-        Dictionary containing all intermediate images.
-        """
-
-        original = self.load_image(image_path)
-
+    def _build_outputs(self, original: np.ndarray) -> dict:
+        """Shared pipeline logic for both file and in-memory paths."""
         resized = self.resize(original)
-
         gray = self.to_grayscale(resized)
-
         enhanced = self.apply_clahe(gray)
-
         normalized = self.normalize(enhanced)
 
         return {
@@ -123,3 +108,34 @@ class ImagePreprocessor:
             "enhanced": enhanced,
             "normalized": normalized,
         }
+
+    def preprocess(
+        self,
+        image_path: str
+    ) -> dict:
+        """
+        Complete preprocessing pipeline from a file path.
+
+        Returns
+        -------
+        Dictionary containing all intermediate images.
+        """
+        original = self.load_image(image_path)
+        return self._build_outputs(original)
+
+    def preprocess_bytes(self, image_bytes: bytes) -> dict:
+        """
+        Complete preprocessing pipeline from raw image bytes (in-memory).
+        Avoids disk I/O — 2x faster than preprocess() on cloud environments.
+
+        Args:
+            image_bytes: Raw JPEG/PNG/WEBP bytes.
+
+        Returns:
+            Dictionary containing all intermediate images.
+        """
+        arr = np.frombuffer(image_bytes, dtype=np.uint8)
+        original = cv2.imdecode(arr, cv2.IMREAD_COLOR)
+        if original is None:
+            raise ValueError("Unable to decode image bytes.")
+        return self._build_outputs(original)

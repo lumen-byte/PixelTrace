@@ -1,13 +1,11 @@
 import os
-import shutil
-import tempfile
 import time
 from pathlib import Path
 
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
-from predict import predict
+from predict import predict, predict_bytes
 
 app = FastAPI(
     title="PixelTrace API",
@@ -18,9 +16,18 @@ app = FastAPI(
 
 @app.on_event("startup")
 def _preload():
-    """Load model + extractors at server startup, not on first request."""
+    """Load model + extractors and run a warm-up prediction at server startup."""
     from predict import _load_pipeline
     _load_pipeline()
+    # Warm-up: run a dummy prediction to JIT-compile numpy paths and cache grids
+    import numpy as np
+    dummy_jpg = np.zeros((100, 100, 3), dtype=np.uint8)
+    import cv2
+    _, buf = cv2.imencode('.jpg', dummy_jpg)
+    try:
+        predict_bytes(buf.tobytes())
+    except Exception:
+        pass  # Score doesn't matter, just warming up code paths
 
 # Enable CORS for frontend requests
 app.add_middleware(
@@ -427,7 +434,7 @@ def root():
 
 
 @app.post("/predict")
-def predict_endpoint(file: UploadFile = File(...)):
+async def predict_endpoint(file: UploadFile = File(...)):
     # 1. Validate file extension
     suffix = Path(file.filename).suffix.lower()
     if suffix not in [".jpg", ".jpeg", ".png", ".webp"]:
@@ -436,31 +443,25 @@ def predict_endpoint(file: UploadFile = File(...)):
             detail="Unsupported file format. Please upload JPG, PNG, or WEBP."
         )
 
-    # 2. Save file temporarily in workspace
-    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
-        try:
-            shutil.copyfileobj(file.file, tmp)
-            tmp_path = Path(tmp.name)
-        except Exception as e:
-            raise HTTPException(
-                status_code=500,
-                detail=f"Failed to process upload: {e}"
-            )
+    # 2. Read file bytes into memory (no temp file I/O)
+    try:
+        image_bytes = await file.read()
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to read upload: {e}"
+        )
 
-    # 3. Predict and get both score and features
+    # 3. Predict entirely in-memory
     try:
         t0 = time.perf_counter()
-        score, features = predict(str(tmp_path), return_features=True)
+        score, features = predict_bytes(image_bytes, return_features=True)
         latency = (time.perf_counter() - t0) * 1000
     except Exception as e:
         raise HTTPException(
             status_code=500,
             detail=f"Model inference failed: {e}"
         )
-    finally:
-        # Cleanup temporary file
-        if tmp_path.exists():
-            tmp_path.unlink()
 
     # Filter features to keep the report lightweight
     report_features = {
