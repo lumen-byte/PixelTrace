@@ -1,0 +1,35 @@
+# Virtual environment
+.venv/
+venv/
+env/
+ENV/
+
+# Python compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution & packaging
+build/
+dist/
+*.egg-info/
+
+# Tests & coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Logs
+*.log
+
+# OS metadata
+.DS_Store
+Thumbs.db
+
+# Project local data & output ignores
+dataset/raw/
+dataset/processed/
+dataset/train/
+dataset/test/
+outputs/
+.env
