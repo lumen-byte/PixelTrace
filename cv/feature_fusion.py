@@ -1,11 +1,10 @@
 """
 PixelTrace - Feature Fusion Engine
 ----------------------------------
-Combines features from all computer vision extractors and the CNN
-embedding model into one unified feature vector.
+Combines features from all computer vision extractors into one
+unified feature vector. FFT extractor now includes moiré features.
 """
 
-import joblib
 from cv.edge import EdgeFeatureExtractor
 from cv.fft import FFTFeatureExtractor
 from cv.texture import TextureFeatureExtractor
@@ -15,9 +14,7 @@ from cv.sharpness import SharpnessFeatureExtractor
 from cv.color import ColorFeatureExtractor
 from cv.geometry import GeometryFeatureExtractor
 from cv.noise import NoiseFeatureExtractor
-from cv.moire import MoireDetector
 from cv.chromatic import ChromaticAberrationExtractor
-
 
 
 class FeatureFusionEngine:
@@ -28,18 +25,18 @@ class FeatureFusionEngine:
 
     def __init__(self):
 
-        self.extractors = [
-            EdgeFeatureExtractor(),
-            FFTFeatureExtractor(),
-            TextureFeatureExtractor(),
-            StructuralFeatureExtractor(),
-            ReflectionFeatureExtractor(),
-            SharpnessFeatureExtractor(),
-            ColorFeatureExtractor(),
-            GeometryFeatureExtractor(),
-            NoiseFeatureExtractor(),
-            MoireDetector(),
-            ChromaticAberrationExtractor(),
+        # (extractor, input_key) pairs
+        self._pipeline = [
+            (EdgeFeatureExtractor(),          "enhanced"),
+            (FFTFeatureExtractor(),           "gray"),      # FFT now includes moiré
+            (TextureFeatureExtractor(),       "enhanced"),
+            (StructuralFeatureExtractor(),    "enhanced"),
+            (ReflectionFeatureExtractor(),    "resized"),
+            (SharpnessFeatureExtractor(),     "enhanced"),
+            (ColorFeatureExtractor(),         "resized"),
+            (GeometryFeatureExtractor(),      "enhanced"),
+            (NoiseFeatureExtractor(),         "enhanced"),
+            (ChromaticAberrationExtractor(),  "resized"),
         ]
 
         # Load CNN feature extractor and SVD projection model
@@ -49,6 +46,7 @@ class FeatureFusionEngine:
             self.svd_model = None
         else:
             try:
+                import joblib
                 from ml.cnn_embedding import CNNEmbeddingExtractor
                 self.svd_model = joblib.load("ml/models/cnn_svd.pkl")
                 self.cnn_extractor = CNNEmbeddingExtractor()
@@ -61,43 +59,21 @@ class FeatureFusionEngine:
 
         features = {}
 
-        for extractor in self.extractors:
-
+        for extractor, input_key in self._pipeline:
             try:
-
-                # Determine proper input automatically
-                if extractor.__class__.__name__ in [
-                    "ReflectionFeatureExtractor",
-                    "ColorFeatureExtractor",
-                    "ChromaticAberrationExtractor",
-                ]:
-                    result = extractor.extract(
-                        preprocessed["resized"]
-                    )
-
-                elif extractor.__class__.__name__ == "MoireDetector":
-                    result = extractor.extract(
-                        preprocessed["gray"]
-                    )
-
-                else:
-                    result = extractor.extract(
-                        preprocessed["enhanced"]
-                    )
+                result = extractor.extract(preprocessed[input_key])
 
                 # Keep only numerical values
                 for key, value in result.items():
-
                     if isinstance(value, (int, float)):
                         features[key] = value
 
             except Exception as e:
-
                 print(
                     f"[WARNING] {extractor.__class__.__name__} failed: {e}"
                 )
 
-        # Extract CNN features and append them in the requested order (cnn_000 to cnn_031)
+        # Extract CNN features and append them
         if self.cnn_extractor is not None and self.svd_model is not None:
             try:
                 raw_emb = self.cnn_extractor.extract(preprocessed["original"])

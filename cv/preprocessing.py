@@ -45,7 +45,7 @@ class ImagePreprocessor:
     def resize(
         self,
         image: np.ndarray,
-        width: int = 512
+        width: int = 256
     ) -> np.ndarray:
         """
         Resize image while maintaining aspect ratio.

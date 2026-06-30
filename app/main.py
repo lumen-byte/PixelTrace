@@ -15,6 +15,13 @@ app = FastAPI(
     version="1.0.0",
 )
 
+
+@app.on_event("startup")
+def _preload():
+    """Load model + extractors at server startup, not on first request."""
+    from predict import _load_pipeline
+    _load_pipeline()
+
 # Enable CORS for frontend requests
 app.add_middleware(
     CORSMiddleware,
