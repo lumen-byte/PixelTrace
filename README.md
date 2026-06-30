@@ -1,14 +1,16 @@
 # PixelTrace
 
 ## Overview
-PixelTrace is a system‑level solution for detecting screen recaptures and image fraud. It combines a **hybrid feature extraction pipeline**—lightweight handcrafted computer‑vision descriptors and a deep convolutional neural network (CNN)—to deliver high‑accuracy detection while remaining performant on CPU‑only environments.
+Screens lie. A photo of a photo can look just as crisp, just as convincing, as the real thing — until you know what to look for. PixelTrace was built to know what to look for.
+
+It's a system-level solution for catching screen recaptures and image fraud, built around a **hybrid feature extraction pipeline** that pairs lightweight handcrafted computer-vision descriptors with a deep convolutional neural network (CNN). The result is detection accuracy that doesn't demand a GPU farm to run — it's comfortable on CPU-only environments, which matters a lot more in production than in a research notebook.
 
 ## Features
-- **Hybrid Mode**: Switch seamlessly between a fast handcrafted CV stack and a powerful CNN‑based extractor. The mode can be toggled at runtime (environment variable `PT_NO_CNN`).
-- **Stateless API**: Exposes a FastAPI endpoint (`api/index.py`) that can be deployed server‑less on Vercel or containerised on Render.
-- **Optimised Runtime**: Runtime dependencies have been trimmed to stay under Vercel’s 500 MB bundle limit (no pandas, XGBoost, or heavy training‑time libraries).
-- **Docker Ready**: A production‑grade `Dockerfile` based on `python:3.12‑slim` for consistent deployments.
-- **Cross‑Platform**: Works on macOS, Linux and Windows; GPU acceleration is optional for the CNN path.
+- **Hybrid Mode** — Switch seamlessly between a fast handcrafted CV stack and a heavier CNN-based extractor, toggled at runtime with the `PT_NO_CNN` environment variable. Speed when you need it, depth when you don't.
+- **Stateless API** — A FastAPI endpoint (`api/index.py`) ready to deploy serverless on Vercel or containerized on Render, with no hidden state to manage between requests.
+- **Optimized Runtime** — Every runtime dependency earns its place. No pandas, no XGBoost, no heavy training-time libraries — just what's needed to stay under Vercel's 500 MB bundle limit.
+- **Docker Ready** — A production-grade `Dockerfile` built on `python:3.12-slim` for deployments that behave the same way everywhere.
+- **Cross-Platform** — Runs on macOS, Linux, and Windows, with GPU acceleration available for the CNN path when you want it, optional when you don't.
 
 ## Architecture
 ```
@@ -18,7 +20,7 @@ PixelTrace
 │   └─ *.py                # Individual CV modules (e.g., chromatic, noise)
 ├─ ml/
 │   ├─ models/
-│   │   └─ best_model.pkl  # Pre‑trained SVM classifier
+│   │   └─ best_model.pkl  # Pre-trained SVM classifier
 │   └─ cnn/                # Optional PyTorch/Timm models
 ├─ api/
 │   └─ index.py            # FastAPI entry point for Vercel/Render
@@ -26,7 +28,11 @@ PixelTrace
 ├─ pyproject.toml           # Minimal runtime dependencies
 └─ Dockerfile               # Production container image
 ```
-The **FeatureFusionEngine** merges handcrafted descriptors with CNN embeddings before feeding them to the final classifier, providing robustness against a wide range of manipulations.
+At the heart of it all sits the **FeatureFusionEngine**, which merges handcrafted descriptors with CNN embeddings before handing them off to the final classifier — giving the system resilience against a wide range of manipulation techniques, not just the obvious ones.
+
+## Live Demo
+- **Vercel:** [pixel-trace-8966vpegb-lumenbyte1.vercel.app](https://pixel-trace-8966vpegb-lumenbyte1.vercel.app/)
+- **Render:** [pixeltrace.onrender.com](https://pixeltrace.onrender.com/)
 
 ## Installation
 ```bash
@@ -41,7 +47,7 @@ source .venv/bin/activate
 # Install runtime dependencies
 uv pip install -r <(uv pip compile pyproject.toml --no-dev)
 ```
-> The `uv` tool is used for deterministic, fast dependency resolution.
+> `uv` is used here deliberately — it gives fast, deterministic dependency resolution, so the environment you build today behaves the same way next month.
 
 ## Usage
 ### CLI
@@ -54,41 +60,39 @@ uv pip install -r <(uv pip compile pyproject.toml --no-dev)
 # Start the development server
 .venv/bin/python -m uvicorn app.main:app --reload
 ```
-The API accepts a multipart/form‑data POST request at `/predict` and returns a JSON payload with the authenticity score.
+The API accepts a `multipart/form-data` POST request at `/predict` and returns a JSON payload with the authenticity score.
 
 ## Deployment
-### Vercel (Server‑less)
-1. Ensure `vercel.json` routes to `api/index.py`.
-2. Set the environment variable `PT_NO_CNN=1` if you need to stay within the function size limit.
+
+### Vercel (Serverless)
+1. Make sure `vercel.json` routes to `api/index.py`.
+2. Set `PT_NO_CNN=1` if you need to stay within the function size limit.
 3. Deploy with the Vercel CLI:
    ```bash
    vercel --prod
    ```
+
 ### Render (Docker)
 1. Push the repository to Render and configure a **Docker** service.
-2. Use the provided `Dockerfile`; Render will build the image automatically.
+2. Use the provided `Dockerfile` — Render builds the image automatically.
 3. Expose port `8000` (FastAPI default) in the Render settings.
 
 ## Screenshots
 
 ### ✅ Authentic Photo Detection
-
-The system correctly identifies a genuine camera-captured photograph as **Authentic**, assigning a very low fraud probability while showing the extracted forensic indicators used during the decision-making process.
+The system correctly recognizes a genuine, camera-captured photograph as **Authentic**, assigning a very low fraud probability while surfacing the forensic indicators that informed the decision.
 
 ![Authentic Photo Detection](https://github.com/lumen-byte/PixelTrace/blob/main/ScreenShots/Screenshot%202026-07-01%20at%202.26.46%E2%80%AFAM.png)
 
 ---
 
 ### 🚨 Screen Recapture (Fraud) Detection
-
-The system successfully detects a photograph of a screen/display as a **Screen Recapture (Fraud)** with high confidence by analyzing moiré patterns, chromatic edge artifacts, texture inconsistencies, and display-related forensic features.
+The system flags a photograph of a screen or display as a **Screen Recapture (Fraud)** with high confidence, drawing on moiré patterns, chromatic edge artifacts, texture inconsistencies, and other display-related forensic signals.
 
 ![Screen Recapture Detection](https://github.com/lumen-byte/PixelTrace/blob/main/ScreenShots/Screenshot%202026-07-01%20at%202.27.18%E2%80%AFAM.png)
 
-*Replace the above placeholders with the actual screenshots of the live application.*
-
 ## Contributing
-Contributions are welcome. Please fork the repository, create a feature branch, and submit a pull request. Follow the existing code style and run the test suite before submitting.
+Contributions are genuinely welcome. Fork the repository, create a feature branch, and open a pull request. Please follow the existing code style and run the test suite before submitting — it keeps the project trustworthy for everyone who depends on it.
 
 ## License
 This project is licensed under the MIT License.
