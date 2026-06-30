@@ -70,7 +70,7 @@ The API accepts a multipart/form‑data POST request at `/predict` and returns a
 3. Expose port `8000` (FastAPI default) in the Render settings.
 
 ## Screenshots
-![Real authentication screenshot](file:///Users/abhimanyu/.gemini/antigravity-ide/brain/8e933281-ef57-4560-aa7c-9cf3ddfe0719/media__1782844189468.png)
+![Real authentication screenshot]([file:///Users/abhimanyu/.gemini/antigravity-ide/brain/8e933281-ef57-4560-aa7c-9cf3ddfe0719/media__1782844189468.png](https://github.com/lumen-byte/PixelTrace/blob/main/ScreenShots/Screenshot%202026-07-01%20at%202.26.46%E2%80%AFAM.png))
 
 ![Fraud detection screenshot](file:///Users/abhimanyu/.gemini/antigravity-ide/brain/8e933281-ef57-4560-aa7c-9cf3ddfe0719/media__1782852117449.png)
 
