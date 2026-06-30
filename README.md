@@ -30,6 +30,20 @@ PixelTrace
 ```
 At the heart of it all sits the **FeatureFusionEngine**, which merges handcrafted descriptors with CNN embeddings before handing them off to the final classifier — giving the system resilience against a wide range of manipulation techniques, not just the obvious ones.
 
+## Screenshots
+
+### ✅ Authentic Photo Detection
+The system correctly recognizes a genuine, camera-captured photograph as **Authentic**, assigning a very low fraud probability while surfacing the forensic indicators that informed the decision.
+
+![Authentic Photo Detection](https://github.com/lumen-byte/PixelTrace/blob/main/ScreenShots/Screenshot%202026-07-01%20at%202.26.46%E2%80%AFAM.png)
+
+---
+
+### 🚨 Screen Recapture (Fraud) Detection
+The system flags a photograph of a screen or display as a **Screen Recapture (Fraud)** with high confidence, drawing on moiré patterns, chromatic edge artifacts, texture inconsistencies, and other display-related forensic signals.
+
+![Screen Recapture Detection](https://github.com/lumen-byte/PixelTrace/blob/main/ScreenShots/Screenshot%202026-07-01%20at%202.27.18%E2%80%AFAM.png)
+
 ## Live Demo
 - **Vercel:** [pixel-trace-8966vpegb-lumenbyte1.vercel.app](https://pixel-trace-8966vpegb-lumenbyte1.vercel.app/)
 - **Render:** [pixeltrace.onrender.com](https://pixeltrace.onrender.com/)
@@ -76,20 +90,6 @@ The API accepts a `multipart/form-data` POST request at `/predict` and returns a
 1. Push the repository to Render and configure a **Docker** service.
 2. Use the provided `Dockerfile` — Render builds the image automatically.
 3. Expose port `8000` (FastAPI default) in the Render settings.
-
-## Screenshots
-
-### ✅ Authentic Photo Detection
-The system correctly recognizes a genuine, camera-captured photograph as **Authentic**, assigning a very low fraud probability while surfacing the forensic indicators that informed the decision.
-
-![Authentic Photo Detection](https://github.com/lumen-byte/PixelTrace/blob/main/ScreenShots/Screenshot%202026-07-01%20at%202.26.46%E2%80%AFAM.png)
-
----
-
-### 🚨 Screen Recapture (Fraud) Detection
-The system flags a photograph of a screen or display as a **Screen Recapture (Fraud)** with high confidence, drawing on moiré patterns, chromatic edge artifacts, texture inconsistencies, and other display-related forensic signals.
-
-![Screen Recapture Detection](https://github.com/lumen-byte/PixelTrace/blob/main/ScreenShots/Screenshot%202026-07-01%20at%202.27.18%E2%80%AFAM.png)
 
 ## Contributing
 Contributions are genuinely welcome. Fork the repository, create a feature branch, and open a pull request. Please follow the existing code style and run the test suite before submitting — it keeps the project trustworthy for everyone who depends on it.
