@@ -39,7 +39,6 @@ from pathlib import Path
 
 import joblib
 import numpy as np
-import pandas as pd
 from PIL import Image
 
 warnings.filterwarnings("ignore")
@@ -109,15 +108,15 @@ def predict(image_path: str, return_features: bool = False):
 
     # 3. Align with scaler expected features
     expected_cols = list(_scaler.feature_names_in_)
-    row = {col: features.get(col, 0.0) for col in expected_cols}
-    df  = pd.DataFrame([row])
-    df_scaled = pd.DataFrame(_scaler.transform(df), columns=df.columns)
+    row_values = [features.get(col, 0.0) for col in expected_cols]
+    arr = np.array([row_values], dtype=np.float32)
+    arr_scaled = _scaler.transform(arr)
 
     # 4. Score
     if hasattr(_model, "predict_proba"):
-        score = float(_model.predict_proba(df_scaled)[0][1])
+        score = float(_model.predict_proba(arr_scaled)[0][1])
     else:
-        score = float(_model.predict(df_scaled)[0])
+        score = float(_model.predict(arr_scaled)[0])
 
     score = round(score, 4)
     if return_features:
