@@ -20,14 +20,14 @@ At the core of PixelTrace is the **FeatureFusionEngine**, an orchestrator that m
 ### Authentic Photo Detection
 The system correctly recognizes a genuine, camera-captured photograph as Authentic, assigning a very low fraud probability while surfacing the forensic indicators that informed the decision.
 
-![Authentic Photo Detection](https://github.com/lumen-byte/PixelTrace/blob/main/ScreenShots/Screenshot%202026-07-01%20at%202.26.46%E2%80%AFAM.png)
+![Authentic Photo Detection]()
 
 <br/>
 
 ### Screen Recapture (Fraud) Detection
 The system flags a photograph of a screen or display as a Screen Recapture (Fraud) with high confidence, drawing on moiré patterns, chromatic edge artifacts, texture inconsistencies, and other display-related forensic signals.
 
-![Screen Recapture Detection](https://github.com/lumen-byte/PixelTrace/blob/main/ScreenShots/Screenshot%202026-07-01%20at%202.27.18%E2%80%AFAM.png)
+![Screen Recapture Detection]()
 
 ## Model Performance
 Through rigorous optimization of both the feature extractors and the classification model, PixelTrace achieves an excellent balance between accuracy and inference latency:
