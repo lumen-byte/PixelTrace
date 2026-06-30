@@ -70,9 +70,20 @@ The API accepts a multipart/form‑data POST request at `/predict` and returns a
 3. Expose port `8000` (FastAPI default) in the Render settings.
 
 ## Screenshots
-![Real authentication screenshot]([file:///Users/abhimanyu/.gemini/antigravity-ide/brain/8e933281-ef57-4560-aa7c-9cf3ddfe0719/media__1782844189468.png](https://github.com/lumen-byte/PixelTrace/blob/main/ScreenShots/Screenshot%202026-07-01%20at%202.26.46%E2%80%AFAM.png))
 
-![Fraud detection screenshot](file:///Users/abhimanyu/.gemini/antigravity-ide/brain/8e933281-ef57-4560-aa7c-9cf3ddfe0719/media__1782852117449.png)
+### ✅ Authentic Photo Detection
+
+The system correctly identifies a genuine camera-captured photograph as **Authentic**, assigning a very low fraud probability while showing the extracted forensic indicators used during the decision-making process.
+
+![Authentic Photo Detection](https://github.com/lumen-byte/PixelTrace/blob/main/ScreenShots/Screenshot%202026-07-01%20at%202.26.46%E2%80%AFAM.png)
+
+---
+
+### 🚨 Screen Recapture (Fraud) Detection
+
+The system successfully detects a photograph of a screen/display as a **Screen Recapture (Fraud)** with high confidence by analyzing moiré patterns, chromatic edge artifacts, texture inconsistencies, and display-related forensic features.
+
+![Screen Recapture Detection](https://github.com/lumen-byte/PixelTrace/blob/main/ScreenShots/Screenshot%202026-07-01%20at%202.27.18%E2%80%AFAM.png)
 
 *Replace the above placeholders with the actual screenshots of the live application.*
 
