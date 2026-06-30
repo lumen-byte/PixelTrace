@@ -38,7 +38,6 @@ Careful optimization of both the feature extractors and the classification model
 - **Classifier** — Final classification is handled by an optimized XGBoost model, chosen for how well it separates complex, non-linear relationships within the handcrafted forensic features while staying extremely fast at inference time.
 
 ## Live Demo
-- **Vercel:** [pixel-trace-8966vpegb-lumenbyte1.vercel.app](https://pixel-trace-8966vpegb-lumenbyte1.vercel.app/)
 - **Render:** [pixeltrace.onrender.com](https://pixeltrace.onrender.com/)
 
 ## Installation
