@@ -33,7 +33,7 @@ The system flags a photograph of a screen or display as a Screen Recapture (Frau
 Through rigorous optimization of both the feature extractors and the classification model, PixelTrace achieves an excellent balance between accuracy and inference latency:
 
 - **Accuracy**: Achieves an **85.0%** test accuracy on unseen data.
-- **Cross-Validation**: Rigorous 5-Fold Stratified Cross-Validation shows a highly stable **81.87% (± 6.67%)** mean accuracy across folds, proving the model generalizes well rather than just memorizing the training set.
+- **Cross-Validation**: Rigorous 5-Fold Stratified Cross-Validation shows a highly stable **83.87% (± 6.67%)** mean accuracy across folds, proving the model generalizes well rather than just memorizing the training set.
 - **Inference Latency**: The handcrafted CV pipeline has been heavily optimized (using vectorization, hardware-accelerated transforms, and integer-shift local binary patterns). The entire pipeline executes in approximately **60-70ms** on local machines, scaling efficiently to constrained cloud environments without cold-start penalties.
 - **Classifier**: The final classification relies on an optimized XGBoost model, chosen for its superior performance in separating complex, non-linear relationships within handcrafted forensic features, while remaining extremely fast during inference.
 
