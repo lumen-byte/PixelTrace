@@ -57,10 +57,11 @@ _pipeline_loaded = False
 _model           = None
 _scaler          = None
 _feature_pipeline = None
+_expected_cols   = None
 
 
 def _load_pipeline():
-    global _pipeline_loaded, _model, _scaler, _feature_pipeline
+    global _pipeline_loaded, _model, _scaler, _feature_pipeline, _expected_cols
 
     if _pipeline_loaded:
         return
@@ -73,6 +74,7 @@ def _load_pipeline():
 
     _model  = joblib.load(_BEST_MODEL_PATH)
     _scaler = joblib.load(_SCALER_PATH)
+    _expected_cols = list(_scaler.feature_names_in_)
 
     from cv.preprocessing import ImagePreprocessor
     from cv.feature_fusion import FeatureFusionEngine
@@ -90,8 +92,7 @@ def _score(data: dict, return_features: bool = False):
 
     features = fusion.extract(data)
 
-    expected_cols = list(_scaler.feature_names_in_)
-    row_values = [features.get(col, 0.0) for col in expected_cols]
+    row_values = [features.get(col, 0.0) for col in _expected_cols]
     arr = np.array([row_values], dtype=np.float32)
     arr_scaled = _scaler.transform(arr)
 

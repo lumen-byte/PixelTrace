@@ -105,7 +105,6 @@ class ImagePreprocessor:
         resized = self.resize(original)
         gray = self.to_grayscale(resized)
         enhanced = self.apply_clahe(gray)
-        normalized = self.normalize(enhanced)
 
         import os
         no_cnn = os.environ.get("PT_NO_CNN") == "1"
@@ -115,7 +114,6 @@ class ImagePreprocessor:
             "resized": resized,
             "gray": gray,
             "enhanced": enhanced,
-            "normalized": normalized,
         }
 
     def preprocess(
